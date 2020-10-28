@@ -377,3 +377,11 @@ breaker()
 print("Accuracy : {:.5f} %".format(accuracy_score(y_test, ensemble_y_pred) * 100))
 breaker()
 
+"""# Testing on New Data"""
+X_test_single = np.array([0, 600, 0, 40, 3, 60000, 2, 1, 1, 50000]).reshape(1,-1)
+X_test_single = sc_X.transform(X_test_single)
+
+y_pred = __predict(Network_1, set(Names_1), feature=X_test_single)
+breaker()
+print(y_pred)
+breaker()
