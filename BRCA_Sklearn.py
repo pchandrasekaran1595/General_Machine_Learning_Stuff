@@ -20,7 +20,7 @@ import sklearn.datasets
 
 import gc
 
-datapath = "C:/Users/Ourself/Desktop/Machine Learning/Projects/BRCA/"
+datapath = "..."
 
 def breaker():
     print("\n" + 30 * "-" + "\n")
