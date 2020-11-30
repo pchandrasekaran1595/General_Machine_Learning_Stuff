@@ -45,7 +45,7 @@ class CFG():
 
 
 sc_X = StandardScaler()
-root_dir = "C:/Users/Ourself/Desktop/Machine Learning/Projects/Ionosphere Data/"
+root_dir = "..."
 model_dir = root_dir + "Models/"
 
 if __name__ == "__main__":
