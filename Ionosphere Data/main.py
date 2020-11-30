@@ -13,6 +13,9 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader as DL
 
+#torch.backends.cudnn.deterministic = True
+#torch.backends.cudnn.benchmark = False
+
 def breaker():
     print("\n" + 50 * "-" + "\n")
 
