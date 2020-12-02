@@ -38,10 +38,10 @@ def fit(X=None, y=None, epochs=None, n_folds=None, use_all=False,
         tr_data_setup = Dataset(X_train, y_train.reshape(-1,1))
         va_data_setup = Dataset(X_valid, y_valid.reshape(-1,1))
 
-        DLS = {"train" : DL(tr_data_setup, batch_size=tr_batch_size, shuffle=True, generator=torch.manual_seed(0)),
-               "valid" : DL(va_data_setup, batch_size=va_batch_size, shuffle=True)}
-
         torch.manual_seed(0)
+        DLS = {"train" : DL(tr_data_setup, batch_size=tr_batch_size, shuffle=True),
+               "valid" : DL(va_data_setup, batch_size=va_batch_size, shuffle=True)}
+        
         model = MLP(IL, HL, OL, use_dp, DP1, DP2)
 
         optimizer = model.getOptimizer(lr=lr, wd=wd)
