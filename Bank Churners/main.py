@@ -134,7 +134,7 @@ if __name__ == "__main__":
     tr_data_setup = Dataset(X, y.reshape(-1, 1))
     tr_data = DL(tr_data_setup, batch_size=cfg.tr_batch_size, shuffle=True, generator=torch.manual_seed(0))
 
-    ts_data_setup = Dataset(X_test, y_test.reshape(-1, 1))
+    ts_data_setup = Dataset(X_test, None, "test")
     ts_data = DL(ts_data_setup, batch_size=cfg.ts_batch_size, shuffle=False)
 
     torch.manual_seed(0)
