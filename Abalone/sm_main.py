@@ -34,8 +34,9 @@ class CFG():
         this.HL = HL
         this.epochs = epochs
         this.use_dp = use_dp
-        this.DP1 = DP1
-        this.DP2 = DP2
+        if this.use_dp:
+            this.DP1 = DP1
+            this.DP2 = DP2
 
 
 root_dir = "C:/Users/Ourself/Desktop/Machine Learning/Projects/Abalone/"
@@ -63,25 +64,40 @@ if __name__ == "__main__":
 
     torch.manual_seed(0)
     tr_data_setup = Dataset(X, y.reshape(-1, 1))
-    tr_data = DL(tr_data_setup, batch_size=cfg.tr_batch_size, shuffle=True)
+    tr_data = DL(tr_data_setup, batch_size=cfg.tr_batch_size, shuffle=True, generator=torch.manual_seed(0))
+
+    ts_data_setup = Dataset(X_test, y_test.reshape(-1, 1))
+    ts_data = DL(ts_data_setup, batch_size=cfg.ts_batch_size, shuffle=False)
 
     Model = MLP(cfg.IL, cfg.HL, cfg.OL, cfg.use_dp)
     optimizer = Model.getOptimizer(lr=1e-3, wd=0)
 
-    LP = fp.fit_sm(model=Model, optimizer=optimizer, epochs=cfg.epochs, dataloader=tr_data, criterion=nn.NLLLoss(),
-                   device=cfg.device, verbose=True)
+    TRL, TVL, TRA, TVA = fp.fit_sm(model=Model, optimizer=optimizer, epochs=cfg.epochs,
+                                   trainloader=tr_data, validloader=ts_data,
+                                   criterion=nn.NLLLoss(),
+                                   device=cfg.device, verbose=True)
 
     plt.figure(figsize=(8, 5))
-    plt.plot([i + 1 for i in range(len(LP))], LP, "r")
+    plt.plot([i + 1 for i in range(len(TRL))], TRL, "r", label="Training Loss")
+    plt.plot([i + 1 for i in range(len(TVL))], TVL, "b--", label="Validation Loss")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.title("Training Loss")
+    plt.legend()
+    plt.grid()
     plt.show(block=False)
-    plt.pause(3)
+    plt.pause(2.5)
     plt.close()
 
-    ts_data_setup = Dataset(X_test, None, "test")
-    ts_data = DL(ts_data_setup, batch_size=cfg.ts_batch_size, shuffle=False)
+    plt.figure(figsize=(8, 5))
+    plt.plot([i + 1 for i in range(len(TRA))], TRA, "r", label="Training Accuracy")
+    plt.plot([i + 1 for i in range(len(TVA))], TVA, "b--", label="Validation Accuracy")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.grid()
+    plt.show(block=False)
+    plt.pause(2.5)
+    plt.close()
 
     y_pred = fp.predict_sm(model=Model, dataloader=ts_data, batch_size=cfg.tr_batch_size, device=cfg.device)
 
