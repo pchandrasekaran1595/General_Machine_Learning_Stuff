@@ -134,17 +134,28 @@ if __name__ == "__main__":
     tr_data_setup = Dataset(X, y.reshape(-1, 1))
     tr_data = DL(tr_data_setup, batch_size=cfg.tr_batch_size, shuffle=True, generator=torch.manual_seed(0))
 
-    ts_data_setup = Dataset(X_test, None, "test")
+    ts_data_setup = Dataset(X_test, y_test.reshape(-1, 1))
     ts_data = DL(ts_data_setup, batch_size=cfg.ts_batch_size, shuffle=False)
 
     torch.manual_seed(0)
     Model = ANN(IL=cfg.IL, HL=cfg.HL, OL=cfg.OL, use_dp=cfg.use_dp)
     optimizer = Model.getOptimizer(lr=1e-3, wd=0)
 
-    TRL, TVL, TRA, TVA = fp.fit_sm(model=Model, optimizer=optimizer, epochs=cfg.epochs,
+    Losses, Accuracies = fp.fit_sm(model=Model, optimizer=optimizer, epochs=cfg.epochs,
                                    trainloader=tr_data, validloader=ts_data,
                                    criterion=nn.BCEWithLogitsLoss(), device=cfg.device,
                                    verbose=True)
+
+    TRL = []
+    TVL = []
+    TRA = []
+    TVA = []
+
+    for i in range(len(Losses)):
+        TRL.append(Losses[i]["train"])
+        TVL.append(Losses[i]["valid"])
+        TRA.append(Accuracies[i]["train"])
+        TVA.append(Accuracies[i]["valid"])
 
     plt.figure()
     plt.plot([i + 1 for i in range(len(TRL))], TRL, "r", label="Training Loss")

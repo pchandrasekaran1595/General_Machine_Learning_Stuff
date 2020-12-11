@@ -27,66 +27,58 @@ def fit_sm(model=None, optimizer=None, scheduler=None, epochs=None,
     print("Training ...")
     breaker()
 
-    TRL = []
-    TVL = []
-    TRA = []
-    TVA = []
-    model.to(device)
+    Losses = []
+    Accuracies = []
+
+    DLS = {"train": trainloader, "valid": validloader}
 
     start_time = time()
     for e in range(epochs):
-        e_trl = []
-        e_tvl = []
-        e_tra = []
-        e_tva = []
+        epochLoss = {"train": 0, "valid": 0}
+        epochAccs = {"train": 0, "valid": 0}
 
-        model.train()
-        for X, y in trainloader:
-            X, y = X.to(device), y.to(device)
+        for phase in ["train", "valid"]:
+            if phase == "train":
+                model.train()
+            else:
+                model.eval()
 
-            optimizer.zero_grad()
-            output = model(X)
-            loss = criterion(output, y)
-            loss.backward()
-            optimizer.step()
+            lossPerPass = []
+            accuracy = []
 
-            e_trl.append(loss.item() / y.shape[0])
-            e_tra.append(getAccuracy(y, output))
+            for X, y in DLS[phase]:
+                X, y = X.to(device), y.to(device)
 
-        tr_mean_loss = np.mean(np.array(e_trl))
-        tr_mean_accs = np.mean(np.array(e_tra))
-
-        TRL.append(tr_mean_loss)
-        TRA.append(tr_mean_accs)
+                optimizer.zero_grad()
+                with torch.set_grad_enabled(phase == "train"):
+                    output = model(X)
+                    loss = criterion(output, y)
+                    if phase == "train":
+                        loss.backward()
+                        optimizer.step()
+                lossPerPass.append(loss.item() / y.shape[0])
+                accuracy.append(getAccuracy(y, output))
+            epochLoss[phase] = np.mean(np.array(lossPerPass))
+            epochAccs[phase] = np.mean(np.array(accuracy))
+        Losses.append(epochLoss)
+        Accuracies.append(epochAccs)
 
         if scheduler:
             scheduler.step()
 
-        model.eval()
-        for X, y in validloader:
-            X, y = X.to(device), y.to(device)
-            with torch.no_grad():
-                output = model(X)
-                loss = criterion(output, y)
-                e_tvl.append(loss.item() / y.shape[0])
-                e_tva.append(getAccuracy(y, output))
-        va_mean_loss = np.mean(np.array(e_tvl))
-        va_mean_accs = np.mean(np.array(e_tva))
-
-        TVL.append(va_mean_loss)
-        TVA.append(va_mean_accs)
-
         if verbose:
             print("Epoch : {} | Train Loss : {:.5f} | Valid Loss : {:.5f} \
-| Train Accuracy : {:.5f} | Valid Accuracy : {:.5f}".format(e+1, tr_mean_loss, va_mean_loss, tr_mean_accs, va_mean_accs))
+| Train Accuracy : {:.5f} | Valid Accuracy : {:.5f}".format(e + 1, epochLoss["train"], epochLoss["valid"],
+                                                            epochAccs["train"],
+                                                            epochAccs["valid"]))
 
     breaker()
-    print("Time Taken [{} Epochs] : {:.2f} seconds".format(epochs, (time()-start_time)/60))
+    print("Time Taken [{} Epochs] : {:.2f} seconds".format(epochs, (time() - start_time) / 60))
     breaker()
     print("Training Complete")
     breaker()
 
-    return TRL, TVL, TRA, TVA
+    return Losses, Accuracies
 
 
 def predict(model=None, dataloader=None, batch_size=None, device=None):
